@@ -1,54 +1,178 @@
 #pragma once
 
 #include "ofMain.h"
-//#include "ofxNavigationEvent.h"
 
+template <class T>
 class ofxNavigation {
 public:
+	
+	//--------------------------------------------------------------
+	// setup
 
-    //setup
-    ofxNavigation();
-    void add(void * item);
-    void remove(void * item);
-    void remove(int index);
+    ofxNavigation() {
+		previousIndex = -1;
+		currentIndex = -1;
+		nextIndex = -1;
+		locked = false;
+	};
 
-    //activations
-    void activate(int index);
-    void activate(void * item);
-    void activateNextOnList(bool loop = false);
-    void activatePreviousOnList(bool loop = false);
-    void deactivate();
+    void add(T * item) {
+		items.push_back(item);
+	};
 
-    //getters
-    void * getPrevious();
-    void * getCurrent();
-    void * getNext();
-	void * getItem(int index);
-    int getIndex(void * item);
+    void remove(T * item) {
+		remove(getIndex(item));
+	};
 
-    //locker
-    void lock();
-    void unlock();
-    bool isLocked();
+    void remove(int index) {
+		if (currentIndex == index) {
+			deactivate();
+		}
+		items.erase(items.begin()+(index-1));
+	};
+	
+
+	//--------------------------------------------------------------
+	// activations
+
+    void activate(int index) {
+		changeTo(index);
+	};
+
+    void activate(T * item) {
+		changeTo(getIndex(item));
+	};
+
+    void activateNextOnList(bool loop = false) {
+		if (currentIndex > -1 && currentIndex+1 < items.size()) {
+			changeTo(currentIndex+1);
+		} else if (loop) {
+			changeTo(0);
+		}
+	};
+
+    void activatePreviousOnList(bool loop = false) {
+		if (currentIndex > 0 && currentIndex-1 < items.size()) {
+			changeTo(currentIndex-1);
+		} else if (loop) {
+			changeTo(items.size()-1);
+		}
+	};
+
+    void deactivate() {
+		changeTo(-1);
+	};
+	
+
+	//--------------------------------------------------------------
+	// getters
+
+    T * getPrevious() {
+		return getItem(previousIndex);
+	};
+
+    T * getCurrent() {
+		return getItem(currentIndex);
+	};
+
+    T * getNext() {
+		return getItem(nextIndex);
+	};
+
+	T * getItem(int index) {
+		return (index > -1 && index < items.size()) ? items[index] : NULL;
+	};
+
+    int getIndex(T * item) {
+		for (int i = 0; i < items.size(); i++) {
+			if (items[i] == item) return i;
+		}
+		return -1;
+	};
+	
+
+	//--------------------------------------------------------------
+	// locker
+
+    void lock() {
+		locked = true;
+	};
+
+    void unlock() {
+		locked = false;
+		if (!waitingDeactivate && nextIndex > -1) {
+			updateVars();
+			ofNotifyEvent(activateEvent, *this);
+		}
+	};
+
+    bool isLocked() {
+		return locked;
+	};
     
-    //vars
-    vector<void*> items;
+
+	//--------------------------------------------------------------
+	// vars
+
+    vector<T*> items;
     int previousIndex;
     int currentIndex;
     int nextIndex;
 
-    //events
     ofEvent<ofxNavigation> activateEvent;
     ofEvent<ofxNavigation> deactivateEvent;
     
 
 private:
     
-    //core
-    void changeTo(int index);
-    void updateVars();
+	//--------------------------------------------------------------
+	// core
 
-	//extra
+    void changeTo(int newIndex) {
+		if (locked) return;
+    
+		//only deactivate
+		if (newIndex == -1 && currentIndex > -1) {
+			ofNotifyEvent(deactivateEvent, *this);
+			updateVars();
+		}
+		else if (newIndex != currentIndex) {
+        
+			//only activate
+			if (currentIndex == -1) {
+				nextIndex = newIndex;
+				updateVars();
+				ofNotifyEvent(activateEvent, *this);
+			}
+        
+			//deactivate and activate
+			else {
+				nextIndex = newIndex;
+				waitingDeactivate = true;
+				ofNotifyEvent(deactivateEvent, *this);
+				waitingDeactivate = false;
+
+				//if the someone call lock() when deactivate
+				//it means that nav need to wait
+				//so wait someone call unlock() to procced
+				if (!locked && nextIndex > -1) {
+					updateVars();
+					ofNotifyEvent(activateEvent, *this);
+				}
+			}
+		}
+	}
+
+    void updateVars() {
+		previousIndex = currentIndex;
+		currentIndex = nextIndex;
+		nextIndex = -1;
+	};
+	
+
+	//--------------------------------------------------------------
+	// extra vars
+
     bool locked;
 	bool waitingDeactivate;
     

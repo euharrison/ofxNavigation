@@ -26,11 +26,10 @@ void testApp::draw(){
 
 	ofTranslate(20,70);
 
-	ofRectangle * rect = (ofRectangle*)nav.getCurrent();
-	ofRect(*rect);
+	ofRect(*nav.getCurrent());
 	
 	ofSetColor(255);
-	ofDrawBitmapString("index: "+ofToString(nav.currentIndex), rect->x+15, 25);
+	ofDrawBitmapString("index: "+ofToString(nav.currentIndex), nav.getCurrent()->x+15, 25);
 }
 
 //--------------------------------------------------------------

@@ -21,6 +21,6 @@ class testApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
 
 
-		ofxNavigation nav;
+		ofxNavigation<ofRectangle> nav;
 		
 };
