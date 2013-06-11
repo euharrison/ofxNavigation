@@ -3,8 +3,10 @@
 //--------------------------------------------------------------
 void testApp::setup(){
 
+	ofRectangle * rect;
 	for (int i = 0; i < 5; i++) {
-		nav.add( new ofRectangle(i*100, 0, 100, 100) );
+		rect = new ofRectangle(i*100, 0, 100, 100);
+		nav.add(rect);
 	}
 
 	nav.activate(0);
@@ -25,11 +27,12 @@ void testApp::draw(){
 	ofDrawBitmapString(message, 20, 30);
 
 	ofTranslate(20,70);
-
-	ofRect(*nav.getCurrent());
+	
+	ofRectangle * rect = nav.getCurrent();
+	ofRect(*rect);
 	
 	ofSetColor(255);
-	ofDrawBitmapString("index: "+ofToString(nav.currentIndex), nav.getCurrent()->x+15, 25);
+	ofDrawBitmapString("index: "+ofToString(nav.currentIndex), rect->x+15, 25);
 }
 
 //--------------------------------------------------------------

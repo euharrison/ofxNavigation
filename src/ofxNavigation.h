@@ -14,13 +14,14 @@ public:
 		currentIndex = -1;
 		nextIndex = -1;
 		locked = false;
+		waitingDeactivate = false;
 	};
 
-    void add(T * item) {
+    void add(const T & item) {
 		items.push_back(item);
 	};
 
-    void remove(T * item) {
+    void remove(const T & item) {
 		remove(getIndex(item));
 	};
 
@@ -39,7 +40,7 @@ public:
 		changeTo(index);
 	};
 
-    void activate(T * item) {
+    void activate(const T & item) {
 		changeTo(getIndex(item));
 	};
 
@@ -67,23 +68,23 @@ public:
 	//--------------------------------------------------------------
 	// getters
 
-    T * getPrevious() {
+    T getPrevious() {
 		return getItem(previousIndex);
 	};
 
-    T * getCurrent() {
+    T getCurrent() {
 		return getItem(currentIndex);
 	};
 
-    T * getNext() {
+    T getNext() {
 		return getItem(nextIndex);
 	};
 
-	T * getItem(int index) {
+	T getItem(int index) {
 		return (index > -1 && index < items.size()) ? items[index] : NULL;
 	};
-
-    int getIndex(T * item) {
+	
+    int getIndex(const T & item) {
 		for (int i = 0; i < items.size(); i++) {
 			if (items[i] == item) return i;
 		}
@@ -114,7 +115,7 @@ public:
 	//--------------------------------------------------------------
 	// vars
 
-    vector<T*> items;
+    vector<T> items;
     int previousIndex;
     int currentIndex;
     int nextIndex;
